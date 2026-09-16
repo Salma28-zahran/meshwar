@@ -3,6 +3,11 @@ import 'package:customer_app/config/routing/global_navigator.dart';
 import 'package:customer_app/features/auth/complete_profile/presentation/views/completeprofile.dart';
 import 'package:customer_app/features/auth/otp_screen/presentation/views/otp_screen.dart';
 import 'package:customer_app/features/auth/register/presentation/views/signup_screen.dart';
+import 'package:customer_app/features/home/presentation/views/Vehicle_screen.dart';
+import 'package:customer_app/features/home/presentation/views/home_screen.dart';
+import 'package:customer_app/features/home/presentation/views/whento_screen.dart';
+import 'package:customer_app/features/home/presentation/views/whereto_screen.dart';
+import 'package:customer_app/features/location/presentation/views/location_screen.dart';
 import 'package:customer_app/features/splash/presentation/views/splash_screen.dart';
 import 'package:go_router/go_router.dart';
 
@@ -25,6 +30,36 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.completeprofile,
       builder: (context, state) => const Completeprofile(),
+    ),
+    GoRoute(
+      path: AppRoutes.location,
+      builder: (context, state) => const LocationScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.home,
+      builder: (context, state) => const HomeScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.whereto,
+      builder: (context, state) => const WheretoScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.whento,
+      builder: (context, state) {
+        final extra =
+        state.extra as Map<String, dynamic>?;
+
+        return WhentoScreen(
+          fromTitle:
+          extra?['fromTitle'] as String? ?? '',
+          toTitle:
+          extra?['toTitle'] as String? ?? '',
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.vehicle,
+      builder: (context, state) => const VehicleScreen(),
     ),
   ],
 );
