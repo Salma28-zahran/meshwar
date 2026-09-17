@@ -1,3 +1,4 @@
+import 'package:customer_app/config/routing/app_routes.dart';
 import 'package:customer_app/config/theme/app_colors.dart';
 import 'package:customer_app/config/theme/app_spacing.dart';
 import 'package:customer_app/core/widgets/app_button.dart';
@@ -110,7 +111,10 @@ class Completeprofile extends StatelessWidget {
                 label: 'Continue',
                 onPressed: () {
 
-                },
+                    context.push(AppRoutes.location);
+                  },
+
+
               ),
 
               SizedBox(height: AppSpacing.ml),

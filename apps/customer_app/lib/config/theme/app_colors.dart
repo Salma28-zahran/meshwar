@@ -21,7 +21,7 @@ class AppColors {
 
 
   // ── Primary (never changes) ──────────────────────────────────────────────
-  static const primaryColor = Color(0xFF02BE8C);
+  static const primaryColor = Color(0xFF048E6C);
 /////// secondary color ///////
   static const secondaryColor = Color(0xFF0C2C4C);
 
