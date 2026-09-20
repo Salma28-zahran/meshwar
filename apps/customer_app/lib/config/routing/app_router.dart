@@ -3,8 +3,12 @@ import 'package:customer_app/config/routing/global_navigator.dart';
 import 'package:customer_app/features/auth/complete_profile/presentation/views/completeprofile.dart';
 import 'package:customer_app/features/auth/otp_screen/presentation/views/otp_screen.dart';
 import 'package:customer_app/features/auth/register/presentation/views/signup_screen.dart';
-import 'package:customer_app/features/home/presentation/views/Vehicle_screen.dart';
+import 'package:customer_app/features/home/data/ride_models.dart';
+import 'package:customer_app/features/home/presentation/views/price_screen.dart';
+import 'package:customer_app/features/home/presentation/views/success_screen.dart';
+import 'package:customer_app/features/home/presentation/views/vehicle_screen.dart';
 import 'package:customer_app/features/home/presentation/views/home_screen.dart';
+import 'package:customer_app/features/home/presentation/views/seat_screen.dart';
 import 'package:customer_app/features/home/presentation/views/whento_screen.dart';
 import 'package:customer_app/features/home/presentation/views/whereto_screen.dart';
 import 'package:customer_app/features/location/presentation/views/location_screen.dart';
@@ -60,6 +64,25 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.vehicle,
       builder: (context, state) => const VehicleScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.seat,
+      builder: (context, state) => const SeatScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.price,
+      builder: (context, state) => const PriceScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.success,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+
+        return SuccessScreen(
+          driver: extra['driver'] as DriverInfo,
+          totalFare: extra['totalFare'] as int,
+        );
+      },
     ),
   ],
 );

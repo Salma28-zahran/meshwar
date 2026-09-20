@@ -1,8 +1,10 @@
+import 'package:customer_app/config/routing/app_routes.dart';
 import 'package:customer_app/config/theme/app_colors.dart';
 import 'package:customer_app/config/theme/app_spacing.dart';
 import 'package:customer_app/core/widgets/app_borders.dart';
 import 'package:customer_app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class VehicleScreen extends StatefulWidget {
   const VehicleScreen({super.key});
@@ -55,17 +57,9 @@ class _VehicleScreenState extends State<VehicleScreen> {
   ];
 
   void _continue() {
-    final selectedVehicle =
-    _vehicles[_selectedIndex];
+    context.push(AppRoutes.seat);
 
-    debugPrint(
-      'Selected vehicle: ${selectedVehicle.title}',
-    );
-
-    // TODO:
-    // context.push(...)
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -463,9 +457,7 @@ class _VehicleCard extends StatelessWidget {
               alignment: Alignment.center,
               decoration:
               const BoxDecoration(
-                color: Color(
-                  0xFF057D5D,
-                ),
+                color: AppColors.primaryColor,
                 borderRadius:
                 BorderRadius.only(
                   topRight:

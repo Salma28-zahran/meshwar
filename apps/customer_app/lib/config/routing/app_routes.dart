@@ -13,6 +13,13 @@ abstract final class AppRoutes {
   static const String whereto = '/whereto';
   static const String whento = '/whento';
   static const String vehicle = '/vehicle';
+  static const String seat = '/seat';
+  static const String price = '/price';
+  static const String success = '/success';
+
+
+
+
 
 
 
