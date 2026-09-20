@@ -6,6 +6,7 @@ enum RideStage {
   driverOnWay,
   driverArrived,
   rideInProgress,
+  cancelled,
 }
 
 class DriverInfo {

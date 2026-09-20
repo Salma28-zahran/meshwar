@@ -16,6 +16,15 @@ abstract final class AppRoutes {
   static const String seat = '/seat';
   static const String price = '/price';
   static const String success = '/success';
+  /////////drawer/////////
+  static const String history = '/history';
+  static const String chat = '/chat';
+  static const String support = '/support';
+
+
+
+
+
 
 
 
