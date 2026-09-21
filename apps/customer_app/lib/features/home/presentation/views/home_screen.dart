@@ -1,5 +1,6 @@
 import 'package:customer_app/config/theme/app_colors.dart';
 import 'package:customer_app/config/theme/app_spacing.dart';
+import 'package:customer_app/features/drawer/presentation/views/drawer.dart' as home_drawer;
 import 'package:customer_app/features/home/presentation/widgets/home/home_actions_widget.dart';
 import 'package:customer_app/features/home/presentation/widgets/home/home_map_widget.dart';
 import 'package:customer_app/features/home/presentation/widgets/home/saved_places_widget.dart';
@@ -23,6 +24,15 @@ class HomeScreen extends StatelessWidget {
       ),
       child: Scaffold(
         backgroundColor: AppColors.bgColor,
+        drawer: const home_drawer.Drawer(),
+
+        drawerScrimColor: Colors.black.withValues(
+          alpha: .38,
+        ),
+
+        drawerEnableOpenDragGesture: true,
+
+
         body: LayoutBuilder(
           builder: (context, constraints) {
             final double sheetTop = constraints.maxHeight * 0.42;

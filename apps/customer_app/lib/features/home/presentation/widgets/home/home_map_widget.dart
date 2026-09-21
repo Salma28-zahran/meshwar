@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 
+import 'package:customer_app/config/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 
 class HomeMapWidget extends StatelessWidget {
@@ -92,28 +94,27 @@ class _MenuButton extends StatelessWidget {
       color: Colors.white,
       elevation: 4,
       shadowColor: Colors.black.withValues(
-        alpha: 0.18,
+        alpha: .18,
       ),
       shape: const CircleBorder(),
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: () {
-          // TODO: Open menu
+          Scaffold.of(context).openDrawer();
         },
-        child: const SizedBox(
-          width: 44,
-          height: 44,
+        child: SizedBox(
+          width: 44.r,
+          height: 44.r,
           child: Icon(
             Icons.menu_rounded,
-            size: 25,
-            color: Color(0xFF0C2C4C),
+            size: 22.r,
+            color: Theme.of(context).colorScheme.secondary,
           ),
         ),
       ),
     );
   }
 }
-
 class _CarMarker extends StatelessWidget {
   const _CarMarker({
     this.rotation = 0,

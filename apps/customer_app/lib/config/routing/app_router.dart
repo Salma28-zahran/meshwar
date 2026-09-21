@@ -3,6 +3,9 @@ import 'package:customer_app/config/routing/global_navigator.dart';
 import 'package:customer_app/features/auth/complete_profile/presentation/views/completeprofile.dart';
 import 'package:customer_app/features/auth/otp_screen/presentation/views/otp_screen.dart';
 import 'package:customer_app/features/auth/register/presentation/views/signup_screen.dart';
+import 'package:customer_app/features/drawer/presentation/views/chat_screen.dart';
+import 'package:customer_app/features/drawer/presentation/views/history_screen.dart';
+import 'package:customer_app/features/drawer/presentation/views/support_screen.dart';
 import 'package:customer_app/features/home/data/ride_models.dart';
 import 'package:customer_app/features/home/presentation/views/price_screen.dart';
 import 'package:customer_app/features/home/presentation/views/success_screen.dart';
@@ -83,6 +86,18 @@ final GoRouter appRouter = GoRouter(
           totalFare: extra['totalFare'] as int,
         );
       },
+    ),
+    GoRoute(
+      path: AppRoutes.history,
+      builder: (context, state) => const HistoryScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.chat,
+      builder: (context, state) => const ChatScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.support,
+      builder: (context, state) => const SupportScreen(),
     ),
   ],
 );
