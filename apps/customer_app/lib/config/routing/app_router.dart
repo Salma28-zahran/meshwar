@@ -3,6 +3,8 @@ import 'package:customer_app/config/routing/global_navigator.dart';
 import 'package:customer_app/features/auth/complete_profile/presentation/views/completeprofile.dart';
 import 'package:customer_app/features/auth/otp_screen/presentation/views/otp_screen.dart';
 import 'package:customer_app/features/auth/register/presentation/views/signup_screen.dart';
+import 'package:customer_app/features/cityto/presentation/views/when_city.dart';
+import 'package:customer_app/features/cityto/presentation/views/where_city.dart';
 import 'package:customer_app/features/drawer/presentation/views/chat_screen.dart';
 import 'package:customer_app/features/drawer/presentation/views/history_screen.dart';
 import 'package:customer_app/features/drawer/presentation/views/support_screen.dart';
@@ -15,6 +17,8 @@ import 'package:customer_app/features/home/presentation/views/seat_screen.dart';
 import 'package:customer_app/features/home/presentation/views/whento_screen.dart';
 import 'package:customer_app/features/home/presentation/views/whereto_screen.dart';
 import 'package:customer_app/features/location/presentation/views/location_screen.dart';
+import 'package:customer_app/features/ride_type/data/ride_data.dart';
+import 'package:customer_app/features/ride_type/ride_type.dart';
 import 'package:customer_app/features/splash/presentation/views/splash_screen.dart';
 import 'package:go_router/go_router.dart';
 
@@ -66,7 +70,26 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.vehicle,
-      builder: (context, state) => const VehicleScreen(),
+      builder: (context, state) {
+        final extra = state.extra;
+
+        if (extra is RideData) {
+          return VehicleScreen(
+            rideType: extra.rideType,
+            rideData: extra,
+          );
+        }
+
+        if (extra is RideType) {
+          return VehicleScreen(
+            rideType: extra,
+          );
+        }
+
+        return const VehicleScreen(
+          rideType: RideType.normal,
+        );
+      },
     ),
     GoRoute(
       path: AppRoutes.seat,
@@ -74,7 +97,16 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.price,
-      builder: (context, state) => const PriceScreen(),
+      builder: (context, state) {
+        final extra = state.extra;
+
+        return PriceScreen(
+          rideData:
+          extra is RideData
+              ? extra
+              : null,
+        );
+      },
     ),
     GoRoute(
       path: AppRoutes.success,
@@ -98,6 +130,22 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.support,
       builder: (context, state) => const SupportScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.wherecity,
+      builder: (context, state) => const WhereCity(),
+    ),
+    GoRoute(
+      path: AppRoutes.whencity,
+      builder: (context, state) {
+        final data =
+        state.extra as Map<String, dynamic>?;
+
+        return WhenCity(
+          from: data?['from'] as String? ?? '',
+          to: data?['to'] as String? ?? '',
+        );
+      },
     ),
   ],
 );

@@ -1,0 +1,4 @@
+enum RideType {
+  normal,
+  cityToCity,
+}

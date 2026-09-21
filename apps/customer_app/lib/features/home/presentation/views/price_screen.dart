@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:customer_app/config/routing/app_routes.dart';
 import 'package:customer_app/config/theme/app_spacing.dart';
+import 'package:customer_app/core/widgets/app_borders.dart';
 import 'package:customer_app/core/widgets/app_map.dart';
 import 'package:customer_app/features/home/data/ride_demo_data.dart';
 import 'package:customer_app/features/home/data/ride_models.dart';
@@ -13,18 +14,27 @@ import 'package:customer_app/features/home/presentation/widgets/price/ride_offer
 import 'package:customer_app/features/home/presentation/widgets/price/ride_progress_sheet.dart';
 import 'package:customer_app/features/home/presentation/widgets/price/ride_review_sheet.dart';
 import 'package:customer_app/features/home/presentation/widgets/price/ride_top_widgets.dart';
+import 'package:customer_app/features/ride_type/data/ride_data.dart';
+import 'package:customer_app/features/ride_type/ride_type.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class PriceScreen extends StatefulWidget {
-  const PriceScreen({super.key});
+  const PriceScreen({
+    super.key,
+    this.rideData,
+  });
+
+  final RideData? rideData;
 
   @override
-  State<PriceScreen> createState() => _PriceScreenState();
+  State<PriceScreen> createState() =>
+      _PriceScreenState();
 }
 
 class _PriceScreenState extends State<PriceScreen> {
   RideStage _stage = RideStage.price;
+
   DriverInfo? _selectedDriver;
 
   Timer? _findingTimer;
@@ -32,8 +42,19 @@ class _PriceScreenState extends State<PriceScreen> {
 
   int _offer = 220;
 
-  DriverInfo get _driver =>
-      _selectedDriver ?? RideDemoData.drivers.first;
+  // ===========================================================================
+  // RIDE DATA
+  // ===========================================================================
+
+  bool get _isCityToCity {
+    return widget.rideData?.rideType ==
+        RideType.cityToCity;
+  }
+
+  DriverInfo get _driver {
+    return _selectedDriver ??
+        RideDemoData.drivers.first;
+  }
 
   bool get _showRoute => switch (_stage) {
     RideStage.selectDriver ||
@@ -45,9 +66,14 @@ class _PriceScreenState extends State<PriceScreen> {
     _ => false,
   };
 
+  // ===========================================================================
+  // DISPOSE
+  // ===========================================================================
+
   @override
   void dispose() {
     _cancelTimers();
+
     super.dispose();
   }
 
@@ -59,13 +85,23 @@ class _PriceScreenState extends State<PriceScreen> {
     _statusTimer = null;
   }
 
+  // ===========================================================================
+  // STAGE
+  // ===========================================================================
+
   void _setStage(RideStage stage) {
-    if (!mounted || _stage == stage) return;
+    if (!mounted || _stage == stage) {
+      return;
+    }
 
     setState(() {
       _stage = stage;
     });
   }
+
+  // ===========================================================================
+  // OFFER
+  // ===========================================================================
 
   void _increaseOffer() {
     setState(() {
@@ -74,19 +110,24 @@ class _PriceScreenState extends State<PriceScreen> {
   }
 
   void _decreaseOffer() {
-    if (_offer > 10) {
-      setState(() {
-        _offer -= 10;
-      });
+    if (_offer <= 10) {
+      return;
     }
+
+    setState(() {
+      _offer -= 10;
+    });
   }
 
-  // ---------------------------------------------------------------------------
-  // Ride flow
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // RIDE FLOW
+  // ===========================================================================
 
   void _findDriver() {
-    _setStage(RideStage.findingDriver);
+    _setStage(
+      RideStage.findingDriver,
+    );
+
     _startFindingDriverTimer();
   }
 
@@ -96,16 +137,22 @@ class _PriceScreenState extends State<PriceScreen> {
     _findingTimer = Timer(
       const Duration(seconds: 2),
           () {
-        if (!mounted || _stage != RideStage.findingDriver) {
+        if (!mounted ||
+            _stage !=
+                RideStage.findingDriver) {
           return;
         }
 
-        _setStage(RideStage.selectDriver);
+        _setStage(
+          RideStage.selectDriver,
+        );
       },
     );
   }
 
-  void _selectDriver(DriverInfo driver) {
+  void _selectDriver(
+      DriverInfo driver,
+      ) {
     _cancelTimers();
 
     setState(() {
@@ -124,16 +171,23 @@ class _PriceScreenState extends State<PriceScreen> {
   }
 
   void _confirmRide() {
-    _setStage(RideStage.driverOnWay);
+    _setStage(
+      RideStage.driverOnWay,
+    );
+
     _startDriverOnWayTimer();
   }
 
   void _startDriverOnWayTimer() {
     _scheduleStatus(
       const Duration(seconds: 4),
-      expectedStage: RideStage.driverOnWay,
+      expectedStage:
+      RideStage.driverOnWay,
       action: () {
-        _setStage(RideStage.driverArrived);
+        _setStage(
+          RideStage.driverArrived,
+        );
+
         _startDriverArrivedTimer();
       },
     );
@@ -142,9 +196,13 @@ class _PriceScreenState extends State<PriceScreen> {
   void _startDriverArrivedTimer() {
     _scheduleStatus(
       const Duration(seconds: 4),
-      expectedStage: RideStage.driverArrived,
+      expectedStage:
+      RideStage.driverArrived,
       action: () {
-        _setStage(RideStage.rideInProgress);
+        _setStage(
+          RideStage.rideInProgress,
+        );
+
         _startRideInProgressTimer();
       },
     );
@@ -153,7 +211,8 @@ class _PriceScreenState extends State<PriceScreen> {
   void _startRideInProgressTimer() {
     _scheduleStatus(
       const Duration(seconds: 5),
-      expectedStage: RideStage.rideInProgress,
+      expectedStage:
+      RideStage.rideInProgress,
       action: _openSuccessScreen,
     );
   }
@@ -168,7 +227,8 @@ class _PriceScreenState extends State<PriceScreen> {
     _statusTimer = Timer(
       duration,
           () {
-        if (!mounted || _stage != expectedStage) {
+        if (!mounted ||
+            _stage != expectedStage) {
           return;
         }
 
@@ -200,8 +260,13 @@ class _PriceScreenState extends State<PriceScreen> {
     }
   }
 
+  // ===========================================================================
+  // SUCCESS
+  // ===========================================================================
+
   void _openSuccessScreen() {
-    if (!mounted || _stage == RideStage.cancelled) {
+    if (!mounted ||
+        _stage == RideStage.cancelled) {
       return;
     }
 
@@ -212,44 +277,54 @@ class _PriceScreenState extends State<PriceScreen> {
       extra: {
         'driver': _driver,
         'totalFare': _offer,
+
+        // City to City data
+        'rideData': widget.rideData,
       },
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Cancel ride
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // CANCEL RIDE
+  // ===========================================================================
 
-  Future<void> _requestCancelRide() async {
-    if (_stage == RideStage.cancelled) return;
+  Future<void>
+  _requestCancelRide() async {
+    if (_stage == RideStage.cancelled) {
+      return;
+    }
 
-    // Freeze the current automatic flow while confirmation is open.
     _cancelTimers();
 
-    final shouldCancel = await showDialog<bool>(
+    final shouldCancel =
+    await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
         return CancelRideDialog(
           onKeepRide: () {
-            Navigator.of(dialogContext).pop(false);
+            Navigator.of(
+              dialogContext,
+            ).pop(false);
           },
           onCancelRide: () {
-            Navigator.of(dialogContext).pop(true);
+            Navigator.of(
+              dialogContext,
+            ).pop(true);
           },
         );
       },
     );
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     if (shouldCancel == true) {
       _confirmCancelRide();
       return;
     }
 
-    // User chose "Keep Ride".
-    // Continue the same stage instead of starting over.
     _resumeAutomaticFlow();
   }
 
@@ -265,48 +340,66 @@ class _PriceScreenState extends State<PriceScreen> {
   void _backToHome() {
     _cancelTimers();
 
-    context.go(AppRoutes.home);
+    context.go(
+      AppRoutes.home,
+    );
   }
 
-  // ---------------------------------------------------------------------------
-  // Back
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // BACK
+  // ===========================================================================
 
   void _back() {
     switch (_stage) {
       case RideStage.price:
         Navigator.maybePop(context);
+        return;
 
       case RideStage.findingDriver:
         _requestCancelRide();
+        return;
 
       case RideStage.selectDriver:
-        _setStage(RideStage.price);
+        _setStage(
+          RideStage.price,
+        );
+        return;
 
       case RideStage.reviewRide:
-        _setStage(RideStage.selectDriver);
+        _setStage(
+          RideStage.selectDriver,
+        );
+        return;
 
       case RideStage.driverOnWay:
       case RideStage.driverArrived:
         _statusTimer?.cancel();
-        _setStage(RideStage.reviewRide);
+
+        _setStage(
+          RideStage.reviewRide,
+        );
+        return;
 
       case RideStage.rideInProgress:
         _statusTimer?.cancel();
+
         Navigator.maybePop(context);
+        return;
 
       case RideStage.cancelled:
         _backToHome();
+        return;
     }
   }
 
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
   // UI
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
 
   @override
   Widget build(BuildContext context) {
-    if (_stage == RideStage.cancelled) {
+    if (_stage ==
+        RideStage.cancelled) {
       return RideCanceledScreen(
         onBackHome: _backToHome,
       );
@@ -315,9 +408,14 @@ class _PriceScreenState extends State<PriceScreen> {
     return Scaffold(
       body: Stack(
         children: [
+          // ===================================================================
+          // MAP
+          // ===================================================================
+
           Positioned.fill(
             child: AppMap(
-              center: RideDemoData.center,
+              center:
+              RideDemoData.center,
               zoom: 14.2,
               markers: _markers,
               routePoints: _showRoute
@@ -326,17 +424,30 @@ class _PriceScreenState extends State<PriceScreen> {
             ),
           ),
 
+          // ===================================================================
+          // TOP
+          // ===================================================================
+
           SafeArea(
             child: Padding(
-              padding: EdgeInsets.all(AppSpacing.md),
+              padding: EdgeInsets.all(
+                AppSpacing.md,
+              ),
               child: _topContent,
             ),
           ),
 
+          // ===================================================================
+          // BOTTOM SHEET
+          // ===================================================================
+
           Align(
-            alignment: Alignment.bottomCenter,
+            alignment:
+            Alignment.bottomCenter,
             child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
+              duration: const Duration(
+                milliseconds: 250,
+              ),
               child: RideSheetShell(
                 key: ValueKey(_stage),
                 child: _bottomContent,
@@ -348,12 +459,20 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
+  // ===========================================================================
+  // TOP CONTENT
+  // ===========================================================================
+
   Widget get _topContent {
     final title = switch (_stage) {
-      RideStage.reviewRide => 'Review Your Ride',
-      RideStage.driverOnWay => 'On the way',
-      RideStage.driverArrived => 'Driver Arrived',
-      RideStage.rideInProgress => 'Trip in Progress',
+      RideStage.reviewRide =>
+      'Review Your Ride',
+      RideStage.driverOnWay =>
+      'On the way',
+      RideStage.driverArrived =>
+      'Driver Arrived',
+      RideStage.rideInProgress =>
+      'Trip in Progress',
       _ => null,
     };
 
@@ -365,84 +484,127 @@ class _PriceScreenState extends State<PriceScreen> {
     }
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
       children: [
         RideBackButton(
           onPressed: _back,
         ),
-        SizedBox(width: AppSpacing.sm),
-        const Expanded(
-          child: RideLocationCard(),
+
+        SizedBox(
+          width: AppSpacing.sm,
+        ),
+
+        Expanded(
+          child: _isCityToCity &&
+              widget.rideData != null
+              ? _CityToCityLocationCard(
+            rideData:
+            widget.rideData!,
+          )
+              : const RideLocationCard(),
         ),
       ],
     );
   }
 
-  Widget get _bottomContent => switch (_stage) {
-    RideStage.price => PriceOfferSheet(
-      offer: _offer,
-      onIncrease: _increaseOffer,
-      onDecrease: _decreaseOffer,
-      onFindDriver: _findDriver,
-    ),
+  // ===========================================================================
+  // BOTTOM CONTENT
+  // ===========================================================================
 
-    RideStage.findingDriver => FindingDriverSheet(
-      offer: _offer,
-      onCancel: _requestCancelRide,
-    ),
+  Widget get _bottomContent =>
+      switch (_stage) {
+        RideStage.price =>
+            PriceOfferSheet(
+              offer: _offer,
+              onIncrease:
+              _increaseOffer,
+              onDecrease:
+              _decreaseOffer,
+              onFindDriver:
+              _findDriver,
+            ),
 
-    RideStage.selectDriver => SelectDriverSheet(
-      offer: _offer,
-      drivers: RideDemoData.drivers,
-      onDriverSelected: _selectDriver,
-      onChangeOffer: _changeOffer,
-      onCancel: _requestCancelRide,
-    ),
+        RideStage.findingDriver =>
+            FindingDriverSheet(
+              offer: _offer,
+              onCancel:
+              _requestCancelRide,
+            ),
 
-    RideStage.reviewRide => ReviewRideSheet(
-      driver: _driver,
-      offer: _offer,
-      onConfirm: _confirmRide,
-    ),
+        RideStage.selectDriver =>
+            SelectDriverSheet(
+              offer: _offer,
+              drivers:
+              RideDemoData.drivers,
+              onDriverSelected:
+              _selectDriver,
+              onChangeOffer:
+              _changeOffer,
+              onCancel:
+              _requestCancelRide,
+            ),
 
-    RideStage.driverOnWay => DriverOnWaySheet(
-      driver: _driver,
-      onCancel: _requestCancelRide,
-    ),
+        RideStage.reviewRide =>
+            ReviewRideSheet(
+              driver: _driver,
+              offer: _offer,
+              onConfirm:
+              _confirmRide,
+            ),
 
-    RideStage.driverArrived => DriverArrivedSheet(
-      driver: _driver,
-      fare: _offer,
-      onCancel: _requestCancelRide,
-    ),
+        RideStage.driverOnWay =>
+            DriverOnWaySheet(
+              driver: _driver,
+              onCancel:
+              _requestCancelRide,
+            ),
 
-    RideStage.rideInProgress => RideInProgressSheet(
-      driver: _driver,
-      fare: _offer,
-      onShare: () {},
-    ),
+        RideStage.driverArrived =>
+            DriverArrivedSheet(
+              driver: _driver,
+              fare: _offer,
+              onCancel:
+              _requestCancelRide,
+            ),
 
-    RideStage.cancelled => const SizedBox.shrink(),
-  };
+        RideStage.rideInProgress =>
+            RideInProgressSheet(
+              driver: _driver,
+              fare: _offer,
+              onShare: () {},
+            ),
+
+        RideStage.cancelled =>
+        const SizedBox.shrink(),
+      };
+
+  // ===========================================================================
+  // MAP MARKERS
+  // ===========================================================================
 
   List<AppMapMarker> get _markers {
     if (_stage == RideStage.price) {
       return const [
         AppMapMarker(
-          point: RideDemoData.car,
+          point:
+          RideDemoData.car,
           child: MapCarMarker(),
         ),
         AppMapMarker(
-          point: RideDemoData.nearbyCar,
+          point:
+          RideDemoData.nearbyCar,
           child: MapCarMarker(),
         ),
       ];
     }
 
-    if (_stage == RideStage.findingDriver) {
+    if (_stage ==
+        RideStage.findingDriver) {
       return const [
         AppMapMarker(
-          point: RideDemoData.car,
+          point:
+          RideDemoData.car,
           child: MapCarMarker(),
         ),
       ];
@@ -450,13 +612,209 @@ class _PriceScreenState extends State<PriceScreen> {
 
     return const [
       AppMapMarker(
-        point: RideDemoData.pickup,
+        point:
+        RideDemoData.pickup,
         child: MapPickupMarker(),
       ),
       AppMapMarker(
-        point: RideDemoData.car,
+        point:
+        RideDemoData.car,
         child: MapCarMarker(),
       ),
     ];
+  }
+}
+
+// =============================================================================
+// CITY TO CITY LOCATION CARD
+// =============================================================================
+
+class _CityToCityLocationCard
+    extends StatelessWidget {
+  const _CityToCityLocationCard({
+    required this.rideData,
+  });
+
+  final RideData rideData;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors =
+        Theme.of(context)
+            .colorScheme;
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.ms,
+      ),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius:
+        AppBorders.lg,
+      ),
+      child: Row(
+        children: [
+          Column(
+            mainAxisSize:
+            MainAxisSize.min,
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration:
+                BoxDecoration(
+                  color:
+                  colors.primary,
+                  shape:
+                  BoxShape.circle,
+                ),
+              ),
+
+              Container(
+                width: 1,
+                height: 28,
+                color: colors
+                    .outlineVariant,
+              ),
+
+              Container(
+                width: 10,
+                height: 10,
+                decoration:
+                BoxDecoration(
+                  color:
+                  colors.secondary,
+                  shape:
+                  BoxShape.circle,
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(
+            width: AppSpacing.ms,
+          ),
+
+          Expanded(
+            child: Column(
+              mainAxisSize:
+              MainAxisSize.min,
+              crossAxisAlignment:
+              CrossAxisAlignment
+                  .start,
+              children: [
+                Text(
+                  rideData.from,
+                  maxLines: 1,
+                  overflow:
+                  TextOverflow
+                      .ellipsis,
+                  style:
+                  Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(
+                    color: colors
+                        .secondary,
+                    fontWeight:
+                    FontWeight
+                        .w500,
+                  ),
+                ),
+
+                SizedBox(
+                  height:
+                  AppSpacing.md,
+                ),
+
+                Text(
+                  rideData.to,
+                  maxLines: 1,
+                  overflow:
+                  TextOverflow
+                      .ellipsis,
+                  style:
+                  Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(
+                    color: colors
+                        .secondary,
+                    fontWeight:
+                    FontWeight
+                        .w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(
+            width: AppSpacing.sm,
+          ),
+
+          Column(
+            crossAxisAlignment:
+            CrossAxisAlignment.end,
+            children: [
+              Row(
+                mainAxisSize:
+                MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons
+                        .person_outline_rounded,
+                    size: 16,
+                    color:
+                    colors.primary,
+                  ),
+
+                  SizedBox(
+                    width:
+                    AppSpacing.xs,
+                  ),
+
+                  Text(
+                    '${rideData.passengers}',
+                    style:
+                    Theme.of(context)
+                        .textTheme
+                        .labelMedium
+                        ?.copyWith(
+                      color: colors
+                          .secondary,
+                    ),
+                  ),
+                ],
+              ),
+
+              if (rideData.vehicleName !=
+                  null) ...[
+                SizedBox(
+                  height:
+                  AppSpacing.sm,
+                ),
+
+                Text(
+                  rideData.vehicleName!,
+                  style:
+                  Theme.of(context)
+                      .textTheme
+                      .labelSmall
+                      ?.copyWith(
+                    color: colors
+                        .primary,
+                    fontWeight:
+                    FontWeight
+                        .w600,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
