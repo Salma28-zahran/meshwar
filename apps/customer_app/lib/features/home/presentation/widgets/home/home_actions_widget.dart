@@ -1,6 +1,9 @@
 import 'package:customer_app/config/routing/app_routes.dart';
 import 'package:customer_app/config/theme/app_colors.dart';
+import 'package:customer_app/config/theme/app_spacing.dart';
+import 'package:customer_app/core/widgets/app_borders.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeActionsWidget extends StatelessWidget {
@@ -8,51 +11,70 @@ class HomeActionsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _ServiceCard(
-                icon: Icons.directions_car_filled_rounded,
-                title: 'Ride',
-              ),
-            ),
+        const _ServicesRow(),
 
-            SizedBox(width: 14),
+        SizedBox(height: AppSpacing.md),
 
-            Expanded(
-              child: _ServiceCard(
-                icon: Icons.local_shipping_rounded,
-                title: 'City to city',
-              ),
-            ),
+        const _SearchDestination(),
 
-            SizedBox(width: 14),
+        SizedBox(height: AppSpacing.ms),
 
-            Expanded(
-              child: _ServiceCard(
-                icon: Icons.delivery_dining_rounded,
-                title: 'Delivery',
-              ),
-            ),
-          ],
-        ),
-
-        SizedBox(height: 17),
-
-        _SearchDestination(),
-
-        SizedBox(height: 12),
-
-        _LocationItem(
+        const _LocationItem(
           text: 'Assiut University',
         ),
 
-        SizedBox(height: 8),
+        SizedBox(height: AppSpacing.sm),
 
-        _LocationItem(
+        const _LocationItem(
           text: 'Al-Azhar Mosque, Assiut',
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Services
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ServicesRow extends StatelessWidget {
+  const _ServicesRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+         Expanded(
+          child: _ServiceCard(
+            icon: Icons.directions_car_filled_rounded,
+            title: 'Ride',
+            onTap: () {
+              context.push(AppRoutes.whereto);
+            },
+          ),
+        ),
+
+        SizedBox(width: AppSpacing.ms),
+
+        Expanded(
+          child: _ServiceCard(
+            icon: Icons.local_shipping_rounded,
+            title: 'City to city',
+            onTap: () {
+              context.push(AppRoutes.wherecity);
+            },
+          ),
+        ),
+
+        SizedBox(width: AppSpacing.ms),
+
+        const Expanded(
+          child: _ServiceCard(
+            icon: Icons.delivery_dining_rounded,
+            title: 'Delivery',
+          ),
         ),
       ],
     );
@@ -63,54 +85,125 @@ class _ServiceCard extends StatelessWidget {
   const _ServiceCard({
     required this.icon,
     required this.title,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color onPrimary =
+        Theme.of(context).colorScheme.onPrimary;
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: AppBorders.lg,
+      clipBehavior: Clip.antiAlias,
+      child: Ink(
+        height: 77.h,
+        decoration: const BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: AppBorders.lg,
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: AppBorders.lg,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 23.sp,
+                  color: onPrimary,
+                ),
+
+                SizedBox(height: AppSpacing.sm),
+
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelLarge
+                      ?.copyWith(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                    letterSpacing: 0,
+                    color: onPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+// Search Destination
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SearchDestination extends StatelessWidget {
+  const _SearchDestination();
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: AppBorders.lg,
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {},
+        borderRadius: AppBorders.lg,
+        onTap: () {
+          context.push(AppRoutes.whereto);
+        },
         child: Ink(
-          height: 77,
+          width: double.infinity,
+          height: 52.h,
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+          ),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF02BE8C),
-                Color(0xFF02A87D),
-                Color(0xFF058266),
-              ],
+            color: AppColors.bgColor,
+            borderRadius: AppBorders.lg,
+            border: Border.all(
+              color: AppColors.inputBorderGrey,
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
             children: [
               Icon(
-                icon,
-                size: 23,
-                color: Colors.white,
+                Icons.search_rounded,
+                size: 25.sp,
+                color: context.secondaryColor,
               ),
 
-              const SizedBox(height: 7),
+              SizedBox(width: AppSpacing.ms),
 
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style:
-                Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0,
-                  color: Colors.white,
+              Expanded(
+                child: Text(
+                  'Where to & for how much?',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(
+                    fontSize: 12.sp,
+                    height: 1.2,
+                    letterSpacing: 0,
+                    color: AppColors.textGreyAndWhite,
+                  ),
                 ),
               ),
             ],
@@ -121,96 +214,59 @@ class _ServiceCard extends StatelessWidget {
   }
 }
 
-class _SearchDestination extends StatelessWidget {
-  const _SearchDestination();
+// ─────────────────────────────────────────────────────────────────────────────
+// Saved Location Item
+// ─────────────────────────────────────────────────────────────────────────────
 
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(15),
-      onTap: () {
-        context.push(AppRoutes.whereto);
-      },
-      child: Container(
-        width: double.infinity,
-        height: 52,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.bgColor,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(
-            color: const Color(0xFFC5CED7),
-          ),
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.search_rounded,
-              size: 25,
-              color: Color(0xFF0C2C4C),
-            ),
-
-            const SizedBox(width: 10),
-
-            Expanded(
-              child: Text(
-                'Where to & for how much?',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(
-                  fontSize: 12,
-                  letterSpacing: 0,
-                  color: AppColors.secondaryColor,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 class _LocationItem extends StatelessWidget {
   const _LocationItem({
     required this.text,
+    this.onTap,
   });
 
   final String text;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: () {},
-      child: SizedBox(
-        height: 24,
-        child: Row(
-          children: [
-            const Icon(
-              Icons.location_on_outlined,
-              size: 22,
-              color: Color(0xFF174367),
-            ),
+    return Material(
+      color: Colors.transparent,
+      borderRadius: AppBorders.sm,
+      child: InkWell(
+        borderRadius: AppBorders.sm,
+        onTap: onTap ?? () {},
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: AppSpacing.xs,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.location_on_outlined,
+                size: 22.sp,
+                color: context.secondaryColor,
+              ),
 
-            const SizedBox(width: 9),
+              SizedBox(width: AppSpacing.sm),
 
-            Expanded(
-              child: Text(
-                text,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style:
-                Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontSize: 11.5,
-                  letterSpacing: 0,
-                  color: AppColors.secondaryColor,
+              Expanded(
+                child: Text(
+                  text,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(
+                    fontSize: 12.sp,
+                    height: 1.2,
+                    letterSpacing: 0,
+                    color: AppColors.textGreyAndWhite,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

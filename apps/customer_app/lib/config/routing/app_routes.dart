@@ -20,6 +20,12 @@ abstract final class AppRoutes {
   static const String history = '/history';
   static const String chat = '/chat';
   static const String support = '/support';
+  /////////city to city///////
+  static const String wherecity = '/wherecity';
+  static const String whencity = '/whencity';
+
+
+
 
 
 

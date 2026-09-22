@@ -34,7 +34,7 @@ class UpcomingTripWidget extends StatelessWidget {
                 child: const Icon(
                   Icons.access_time_rounded,
                   size: 20,
-                  color: Color(0xFF00A982),
+                  color: AppColors.primaryColor,
                 ),
               ),
 
@@ -46,7 +46,7 @@ class UpcomingTripWidget extends StatelessWidget {
                 Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFF009D79),
+                  color: AppColors.primaryColor,
                 ),
               ),
 
@@ -60,7 +60,7 @@ class UpcomingTripWidget extends StatelessWidget {
                   Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF009D79),
+                    color: AppColors.primaryColor,
                   ),
                 ),
               ),

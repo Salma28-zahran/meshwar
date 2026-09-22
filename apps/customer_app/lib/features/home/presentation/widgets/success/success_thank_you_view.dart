@@ -1,7 +1,9 @@
+import 'package:customer_app/config/routing/app_routes.dart';
 import 'package:customer_app/config/theme/app_spacing.dart';
 import 'package:customer_app/core/widgets/app_button.dart';
 import 'package:customer_app/features/home/presentation/widgets/success/success_common_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class SuccessThankYouView extends StatelessWidget {
   const SuccessThankYouView({
@@ -47,7 +49,9 @@ class SuccessThankYouView extends StatelessWidget {
 
       bottom: AppButton(
         label: 'Back To Home',
-        onPressed: onHome,
+        onPressed: () {
+          context.push(AppRoutes.home);
+        },
       ),
     );
   }

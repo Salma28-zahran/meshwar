@@ -96,7 +96,7 @@ class _SavedPlaceItem extends StatelessWidget {
             child: Icon(
               icon,
               size: 22,
-              color: Color(0xFF00A37D),
+              color:  AppColors.primaryColor,
             ),
           ),
 

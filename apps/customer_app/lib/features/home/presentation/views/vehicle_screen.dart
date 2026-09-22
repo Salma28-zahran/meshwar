@@ -3,11 +3,20 @@ import 'package:customer_app/config/theme/app_colors.dart';
 import 'package:customer_app/config/theme/app_spacing.dart';
 import 'package:customer_app/core/widgets/app_borders.dart';
 import 'package:customer_app/core/widgets/app_button.dart';
+import 'package:customer_app/features/ride_type/data/ride_data.dart';
+import 'package:customer_app/features/ride_type/ride_type.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class VehicleScreen extends StatefulWidget {
-  const VehicleScreen({super.key});
+  const VehicleScreen({
+    super.key,
+    this.rideType = RideType.normal,
+    this.rideData,
+  });
+
+  final RideType rideType;
+  final RideData? rideData;
 
   @override
   State<VehicleScreen> createState() =>
@@ -17,7 +26,20 @@ class VehicleScreen extends StatefulWidget {
 class _VehicleScreenState extends State<VehicleScreen> {
   int _selectedIndex = 0;
 
-  final List<_VehicleModel> _vehicles = const [
+  // ===========================================================================
+  // CURRENT RIDE TYPE
+  // ===========================================================================
+
+  RideType get _currentRideType {
+    return widget.rideData?.rideType ??
+        widget.rideType;
+  }
+
+  // ===========================================================================
+  // NORMAL RIDE VEHICLES
+  // ===========================================================================
+
+  static const List<_VehicleModel> _normalVehicles = [
     _VehicleModel(
       title: 'Economy',
       description: 'Affordable everyday rides',
@@ -56,21 +78,121 @@ class _VehicleScreenState extends State<VehicleScreen> {
     ),
   ];
 
-  void _continue() {
-    context.push(AppRoutes.seat);
+  // ===========================================================================
+  // CITY TO CITY VEHICLES
+  // ===========================================================================
 
+  static const List<_VehicleModel> _cityToCityVehicles = [
+    _VehicleModel(
+      title: 'Motorcycle',
+      description: 'Small packages • Fast',
+      capacity: '',
+      price: 'EGP 50',
+      imagePath: 'assets/images/motorcycle.png',
+      isBestValue: true,
+    ),
+    _VehicleModel(
+      title: 'Car',
+      description: 'Medium • Protection',
+      capacity: '',
+      price: 'EGP 120',
+      imagePath: 'assets/images/economy.png',
+    ),
+    _VehicleModel(
+      title: 'Van',
+      description: 'Large • Extra space',
+      capacity: '',
+      price: 'EGP 200',
+      imagePath: 'assets/images/van.png',
+    ),
+  ];
+
+  // ===========================================================================
+  // VEHICLES
+  // ===========================================================================
+
+  List<_VehicleModel> get _vehicles {
+    return _currentRideType ==
+        RideType.cityToCity
+        ? _cityToCityVehicles
+        : _normalVehicles;
   }
+
+  // ===========================================================================
+  // CONTINUE
+  // ===========================================================================
+
+  void _continue() {
+    final selectedVehicle =
+    _vehicles[_selectedIndex];
+
+    debugPrint(
+      'Ride Type: $_currentRideType',
+    );
+
+    debugPrint(
+      'Vehicle: ${selectedVehicle.title}',
+    );
+
+    // =======================================================================
+    // CITY TO CITY
+    // =======================================================================
+
+    if (_currentRideType ==
+        RideType.cityToCity) {
+      final updatedRideData =
+      widget.rideData?.copyWith(
+        vehicleName: selectedVehicle.title,
+      );
+
+      debugPrint(
+        'From: ${updatedRideData?.from}',
+      );
+
+      debugPrint(
+        'To: ${updatedRideData?.to}',
+      );
+
+      debugPrint(
+        'Passengers: ${updatedRideData?.passengers}',
+      );
+
+      debugPrint(
+        'Selected Vehicle: ${updatedRideData?.vehicleName}',
+      );
+
+      context.push(
+        AppRoutes.price,
+        extra: updatedRideData,
+      );
+
+      return;
+    }
+
+    // =======================================================================
+    // NORMAL RIDE
+    // =======================================================================
+
+    context.push(
+      AppRoutes.seat,
+    );
+  }
+
+  // ===========================================================================
+  // UI
+  // ===========================================================================
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.bgColor,
 
-      // ==============================================================
+      // =======================================================================
       // APP BAR
-      // ==============================================================
+      // =======================================================================
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.bgColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -79,7 +201,7 @@ class _VehicleScreenState extends State<VehicleScreen> {
         leadingWidth: 72,
         leading: IconButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            context.pop();
           },
           icon: const Icon(
             Icons.arrow_back_rounded,
@@ -101,9 +223,9 @@ class _VehicleScreenState extends State<VehicleScreen> {
         ),
       ),
 
-      // ==============================================================
+      // =======================================================================
       // BODY
-      // ==============================================================
+      // =======================================================================
 
       body: SafeArea(
         top: false,
@@ -123,7 +245,10 @@ class _VehicleScreenState extends State<VehicleScreen> {
                     height: AppSpacing.lg,
                   );
                 },
-                itemBuilder: (context, index) {
+                itemBuilder: (
+                    context,
+                    index,
+                    ) {
                   final vehicle =
                   _vehicles[index];
 
@@ -133,7 +258,8 @@ class _VehicleScreenState extends State<VehicleScreen> {
                     _selectedIndex == index,
                     onTap: () {
                       setState(() {
-                        _selectedIndex = index;
+                        _selectedIndex =
+                            index;
                       });
                     },
                   );
@@ -141,12 +267,12 @@ class _VehicleScreenState extends State<VehicleScreen> {
               ),
             ),
 
-            // ============================================================
-            // CONTINUE BUTTON
-            // ============================================================
+            // =================================================================
+            // CONTINUE
+            // =================================================================
 
             Container(
-              color: Colors.white,
+              color: AppColors.bgColor,
               padding: EdgeInsets.fromLTRB(
                 AppSpacing.md,
                 AppSpacing.sm,
@@ -183,11 +309,13 @@ class _VehicleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const selectedBackground =
-    Color(0xFFF0FAF8);
+    final selectedBackground =
+    AppColors.primaryColor.withValues(
+      alpha: 0.07,
+    );
 
-    const normalBorder =
-    Color(0xFFE4E8EC);
+    final normalBorder =
+        AppColors.inputBorderGrey;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -196,11 +324,9 @@ class _VehicleCard extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             onTap: onTap,
-            borderRadius:
-            AppBorders.md,
+            borderRadius: AppBorders.md,
             child: AnimatedContainer(
-              duration:
-              const Duration(
+              duration: const Duration(
                 milliseconds: 180,
               ),
               width: double.infinity,
@@ -208,17 +334,16 @@ class _VehicleCard extends StatelessWidget {
               const BoxConstraints(
                 minHeight: 122,
               ),
-              padding:
-              const EdgeInsets.fromLTRB(
-                14,
-                18,
-                14,
-                18,
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.ms,
+                AppSpacing.md,
+                AppSpacing.ms,
+                AppSpacing.md,
               ),
               decoration: BoxDecoration(
                 color: selected
                     ? selectedBackground
-                    : Colors.white,
+                    : AppColors.bgColor,
                 borderRadius:
                 AppBorders.md,
                 border: Border.all(
@@ -232,7 +357,8 @@ class _VehicleCard extends StatelessWidget {
                     ? null
                     : [
                   BoxShadow(
-                    color: Colors.black
+                    color: AppColors
+                        .appBlack
                         .withValues(
                       alpha: 0.035,
                     ),
@@ -247,9 +373,9 @@ class _VehicleCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  // =====================================================
-                  // VEHICLE IMAGE
-                  // =====================================================
+                  // ===========================================================
+                  // IMAGE
+                  // ===========================================================
 
                   SizedBox(
                     width: 84,
@@ -278,13 +404,12 @@ class _VehicleCard extends StatelessWidget {
                   ),
 
                   SizedBox(
-                    width:
-                    AppSpacing.ms,
+                    width: AppSpacing.ms,
                   ),
 
-                  // =====================================================
-                  // INFORMATION
-                  // =====================================================
+                  // ===========================================================
+                  // INFO
+                  // ===========================================================
 
                   Expanded(
                     child: Column(
@@ -305,11 +430,13 @@ class _VehicleCard extends StatelessWidget {
                               .textTheme
                               .titleMedium
                               ?.copyWith(
-                            fontSize: 15,
+                            fontSize:
+                            15,
                             fontWeight:
                             FontWeight
                                 .w500,
-                            letterSpacing: 0,
+                            letterSpacing:
+                            0,
                             color: AppColors
                                 .secondaryColor,
                           ),
@@ -331,78 +458,82 @@ class _VehicleCard extends StatelessWidget {
                               .textTheme
                               .bodySmall
                               ?.copyWith(
-                            fontSize: 12,
+                            fontSize:
+                            12,
                             fontWeight:
                             FontWeight
                                 .w400,
-                            letterSpacing: 0,
-                            color:
-                            const Color(
-                              0xFF617B94,
-                            ),
+                            letterSpacing:
+                            0,
+                            color: AppColors
+                                .textGreyAndWhite,
                           ),
                         ),
 
-                        SizedBox(
-                          height:
-                          AppSpacing.xs,
-                        ),
+                        if (vehicle.capacity
+                            .isNotEmpty) ...[
+                          SizedBox(
+                            height:
+                            AppSpacing
+                                .xs,
+                          ),
 
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons
-                                  .person_outline_rounded,
-                              size: 18,
-                              color: Color(
-                                0xFF557694,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons
+                                    .person_outline_rounded,
+                                size: 18,
+                                color: AppColors
+                                    .textGreyAndWhite,
                               ),
-                            ),
 
-                            SizedBox(
-                              width:
-                              AppSpacing.xs,
-                            ),
+                              SizedBox(
+                                width:
+                                AppSpacing
+                                    .xs,
+                              ),
 
-                            Expanded(
-                              child: Text(
-                                vehicle.capacity,
-                                maxLines: 1,
-                                overflow:
-                                TextOverflow
-                                    .ellipsis,
-                                style: Theme.of(
-                                  context,
-                                )
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                  fontSize: 12,
-                                  fontWeight:
-                                  FontWeight
-                                      .w400,
-                                  letterSpacing: 0,
-                                  color:
-                                  const Color(
-                                    0xFF617B94,
+                              Expanded(
+                                child: Text(
+                                  vehicle
+                                      .capacity,
+                                  maxLines: 1,
+                                  overflow:
+                                  TextOverflow
+                                      .ellipsis,
+                                  style: Theme.of(
+                                    context,
+                                  )
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                    fontSize:
+                                    12,
+                                    fontWeight:
+                                    FontWeight
+                                        .w400,
+                                    letterSpacing:
+                                    0,
+                                    color: AppColors
+                                        .textGreyAndWhite,
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
 
                   SizedBox(
-                    width:
-                    AppSpacing.sm,
+                    width: AppSpacing.sm,
                   ),
 
-                  // =====================================================
+                  // ===========================================================
                   // PRICE
-                  // =====================================================
+                  // ===========================================================
 
                   Align(
                     alignment:
@@ -424,10 +555,13 @@ class _VehicleCard extends StatelessWidget {
                             .textTheme
                             .labelLarge
                             ?.copyWith(
-                          fontSize: 13,
+                          fontSize:
+                          13,
                           fontWeight:
-                          FontWeight.w700,
-                          letterSpacing: 0,
+                          FontWeight
+                              .w700,
+                          letterSpacing:
+                          0,
                           color: AppColors
                               .secondaryColor,
                         ),
@@ -440,9 +574,9 @@ class _VehicleCard extends StatelessWidget {
           ),
         ),
 
-        // ===================================================================
+        // =====================================================================
         // BEST VALUE
-        // ===================================================================
+        // =====================================================================
 
         if (vehicle.isBestValue)
           Positioned(
@@ -451,13 +585,16 @@ class _VehicleCard extends StatelessWidget {
             child: Container(
               height: 25,
               padding:
-              const EdgeInsets.symmetric(
-                horizontal: 13,
+              EdgeInsets.symmetric(
+                horizontal:
+                AppSpacing.ms,
               ),
-              alignment: Alignment.center,
+              alignment:
+              Alignment.center,
               decoration:
               const BoxDecoration(
-                color: AppColors.primaryColor,
+                color:
+                AppColors.primaryColor,
                 borderRadius:
                 BorderRadius.only(
                   topRight:
@@ -466,21 +603,24 @@ class _VehicleCard extends StatelessWidget {
                   Radius.circular(9),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Best Value',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight:
                   FontWeight.w500,
-                  color: Colors.white,
+                  color:
+                  Theme.of(context)
+                      .colorScheme
+                      .onPrimary,
                 ),
               ),
             ),
           ),
 
-        // ===================================================================
+        // =====================================================================
         // SELECTED CHECK
-        // ===================================================================
+        // =====================================================================
 
         if (selected)
           Positioned(
@@ -489,23 +629,24 @@ class _VehicleCard extends StatelessWidget {
             child: Container(
               width: 21,
               height: 21,
-              decoration:
-              const BoxDecoration(
+              decoration: BoxDecoration(
                 color:
                 AppColors.primaryColor,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
                     color:
-                    Colors.white,
+                    AppColors.bgColor,
                     spreadRadius: 2,
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.check_rounded,
                 size: 15,
-                color: Colors.white,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onPrimary,
               ),
             ),
           ),

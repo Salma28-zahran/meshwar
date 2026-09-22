@@ -1,10 +1,12 @@
 import 'dart:math' as math;
 
+import 'package:customer_app/config/routing/app_routes.dart';
+import 'package:customer_app/config/theme/app_colors.dart';
+import 'package:customer_app/features/ride_type/ride_type.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../../../config/routing/app_routes.dart';
 import '../widgets/whento/whento_bottom_sheet.dart';
 import '../widgets/whento/whento_map_section.dart';
 
@@ -35,8 +37,7 @@ class WhentoScreen extends StatefulWidget {
 }
 
 class _WhentoScreenState extends State<WhentoScreen> {
-  RideTimeType _selectedType =
-      RideTimeType.now;
+  RideTimeType _selectedType = RideTimeType.now;
 
   DateTime? _scheduledDateTime;
 
@@ -49,8 +50,7 @@ class _WhentoScreenState extends State<WhentoScreen> {
 
     final date = await showDatePicker(
       context: context,
-      initialDate:
-      _scheduledDateTime ?? now,
+      initialDate: _scheduledDateTime ?? now,
       firstDate: DateUtils.dateOnly(now),
       lastDate: DateUtils.dateOnly(
         now.add(
@@ -80,8 +80,7 @@ class _WhentoScreenState extends State<WhentoScreen> {
     }
 
     setState(() {
-      _selectedType =
-          RideTimeType.schedule;
+      _selectedType = RideTimeType.schedule;
 
       _scheduledDateTime = DateTime(
         date.year,
@@ -125,8 +124,7 @@ class _WhentoScreenState extends State<WhentoScreen> {
   // ===========================================================================
 
   Future<void> _continue() async {
-    if (_selectedType ==
-        RideTimeType.schedule &&
+    if (_selectedType == RideTimeType.schedule &&
         _scheduledDateTime == null) {
       await _selectSchedule();
 
@@ -148,15 +146,20 @@ class _WhentoScreenState extends State<WhentoScreen> {
     );
 
     debugPrint(
-      'RIDE TYPE: $_selectedType',
+      'RIDE TIME TYPE: $_selectedType',
     );
 
     debugPrint(
       'SCHEDULE: $_scheduledDateTime',
     );
 
+    debugPrint(
+      'FLOW TYPE: ${RideType.normal}',
+    );
+
     context.push(
       AppRoutes.vehicle,
+      extra: RideType.normal,
     );
   }
 
@@ -167,7 +170,7 @@ class _WhentoScreenState extends State<WhentoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.bgColor,
       body: LayoutBuilder(
         builder: (
             context,
@@ -184,14 +187,12 @@ class _WhentoScreenState extends State<WhentoScreen> {
                 context,
               ).top;
 
-          final sheetHeight =
-          math.min(
+          final sheetHeight = math.min(
             screenHeight * 0.46,
             445.0,
           );
 
-          final safeSheetHeight =
-          math.max(
+          final safeSheetHeight = math.max(
             sheetHeight,
             math.min(
               350.0,
@@ -207,16 +208,11 @@ class _WhentoScreenState extends State<WhentoScreen> {
 
               Positioned.fill(
                 child: WhentoMapSection(
-                  fromTitle:
-                  widget.fromTitle,
-                  toTitle:
-                  widget.toTitle,
-                  fromPoint:
-                  widget.fromPoint,
-                  toPoint:
-                  widget.toPoint,
-                  safeTop:
-                  safeTop,
+                  fromTitle: widget.fromTitle,
+                  toTitle: widget.toTitle,
+                  fromPoint: widget.fromPoint,
+                  toPoint: widget.toPoint,
+                  safeTop: safeTop,
                   bottomSheetHeight:
                   safeSheetHeight,
                   onBack: () {
@@ -234,10 +230,8 @@ class _WhentoScreenState extends State<WhentoScreen> {
                 Alignment.bottomCenter,
                 child: SizedBox(
                   width: screenWidth,
-                  height:
-                  safeSheetHeight,
-                  child:
-                  WhentoBottomSheet(
+                  height: safeSheetHeight,
+                  child: WhentoBottomSheet(
                     selectedType:
                     _selectedType,
                     scheduleSubtitle:
@@ -246,16 +240,14 @@ class _WhentoScreenState extends State<WhentoScreen> {
                     onRideNow: () {
                       setState(() {
                         _selectedType =
-                            RideTimeType
-                                .now;
+                            RideTimeType.now;
                       });
                     },
 
                     onSchedule:
                     _selectSchedule,
 
-                    onContinue:
-                    _continue,
+                    onContinue: _continue,
                   ),
                 ),
               ),
