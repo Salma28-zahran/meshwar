@@ -25,7 +25,13 @@ abstract final class AppRoutes {
   static const String whencity = '/whencity';
   /////////delivery/////////
   static const String delivery= '/delivery';
-  static const String whered= '/whered';
+  static const String whered = '/whered';
+  static const String address = '/address';
+  static const String package = '/package';
+
+
+
+
 
 
 
