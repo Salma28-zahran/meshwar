@@ -23,6 +23,12 @@ abstract final class AppRoutes {
   /////////city to city///////
   static const String wherecity = '/wherecity';
   static const String whencity = '/whencity';
+  /////////delivery/////////
+  static const String delivery= '/delivery';
+  static const String whered= '/whered';
+
+
+
 
 
 

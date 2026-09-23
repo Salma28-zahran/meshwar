@@ -70,10 +70,13 @@ class _ServicesRow extends StatelessWidget {
 
         SizedBox(width: AppSpacing.ms),
 
-        const Expanded(
+         Expanded(
           child: _ServiceCard(
             icon: Icons.delivery_dining_rounded,
             title: 'Delivery',
+            onTap: () {
+              context.push(AppRoutes.delivery);
+            },
           ),
         ),
       ],

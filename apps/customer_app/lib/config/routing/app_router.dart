@@ -5,6 +5,8 @@ import 'package:customer_app/features/auth/otp_screen/presentation/views/otp_scr
 import 'package:customer_app/features/auth/register/presentation/views/signup_screen.dart';
 import 'package:customer_app/features/cityto/presentation/views/when_city.dart';
 import 'package:customer_app/features/cityto/presentation/views/where_city.dart';
+import 'package:customer_app/features/delivery/presentation/views/delivery_screen.dart';
+import 'package:customer_app/features/delivery/presentation/views/where_d_screen.dart';
 import 'package:customer_app/features/drawer/presentation/views/chat_screen.dart';
 import 'package:customer_app/features/drawer/presentation/views/history_screen.dart';
 import 'package:customer_app/features/drawer/presentation/views/support_screen.dart';
@@ -146,6 +148,14 @@ final GoRouter appRouter = GoRouter(
           to: data?['to'] as String? ?? '',
         );
       },
+    ),
+    GoRoute(
+      path: AppRoutes.delivery,
+      builder: (context, state) => const DeliveryScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.whered,
+      builder: (context, state) => const WhereDScreen(),
     ),
   ],
 );
