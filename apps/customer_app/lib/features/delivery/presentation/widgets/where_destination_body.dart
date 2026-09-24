@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:customer_app/config/routing/app_routes.dart';
+import 'package:customer_app/config/theme/app_colors.dart';
 import 'package:customer_app/config/theme/app_spacing.dart';
 import 'package:customer_app/core/widgets/app_borders.dart';
+import 'package:customer_app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
-
-import '../../../../config/theme/app_colors.dart';
-import '../../../../core/widgets/app_button.dart';
 
 class WhereDestinationBody extends StatefulWidget {
   const WhereDestinationBody({super.key});
@@ -35,46 +36,62 @@ class _WhereDestinationBodyState
 
   String? _error;
 
-  // ─────────────────────────────────────────────
-  // Dispose
-  // ─────────────────────────────────────────────
+  int _searchVersion = 0;
 
   @override
   void dispose() {
     _debounce?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
-
     super.dispose();
   }
 
-  // ─────────────────────────────────────────────
-  // Search
-  // ─────────────────────────────────────────────
+  // =========================================================
+  // SEARCH
+  // =========================================================
 
   void _onSearchChanged(String value) {
     _debounce?.cancel();
 
     final query = value.trim();
 
+    if (_selectedPlace != null &&
+        query != _selectedPlace!.displayName) {
+      setState(() {
+        _selectedPlace = null;
+      });
+    }
+
     if (query.isEmpty) {
+      _searchVersion++;
+
       setState(() {
         _results = [];
         _selectedPlace = null;
-        _error = null;
         _isLoading = false;
+        _error = null;
       });
 
       return;
     }
 
+    final version = ++_searchVersion;
+
     _debounce = Timer(
       const Duration(milliseconds: 450),
-          () => _searchPlaces(query),
+          () {
+        _searchPlaces(
+          query,
+          version,
+        );
+      },
     );
   }
 
-  Future<void> _searchPlaces(String query) async {
+  Future<void> _searchPlaces(
+      String query,
+      int version,
+      ) async {
     if (!mounted) return;
 
     setState(() {
@@ -102,6 +119,11 @@ class _WhereDestinationBodyState
         },
       );
 
+      if (!mounted ||
+          version != _searchVersion) {
+        return;
+      }
+
       if (response.statusCode != 200) {
         throw Exception(
           'Search failed: ${response.statusCode}',
@@ -120,14 +142,20 @@ class _WhereDestinationBodyState
           .where(_isAllowedPlace)
           .toList();
 
-      if (!mounted) return;
+      if (!mounted ||
+          version != _searchVersion) {
+        return;
+      }
 
       setState(() {
         _results = places;
         _isLoading = false;
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted ||
+          version != _searchVersion) {
+        return;
+      }
 
       setState(() {
         _results = [];
@@ -137,7 +165,9 @@ class _WhereDestinationBodyState
     }
   }
 
-  bool _isAllowedPlace(_PlaceResult place) {
+  bool _isAllowedPlace(
+      _PlaceResult place,
+      ) {
     const allowedTypes = {
       'city',
       'town',
@@ -151,64 +181,98 @@ class _WhereDestinationBodyState
       'region',
     };
 
-    return allowedTypes.contains(place.type) ||
-        allowedTypes.contains(place.addressType);
+    return allowedTypes.contains(
+      place.type,
+    ) ||
+        allowedTypes.contains(
+          place.addressType,
+        );
   }
 
-  // ─────────────────────────────────────────────
-  // Select place
-  // ─────────────────────────────────────────────
+  // =========================================================
+  // SELECT PLACE
+  // =========================================================
 
-  void _selectPlace(_PlaceResult place) {
+  void _selectPlace(
+      _PlaceResult place,
+      ) {
+    _debounce?.cancel();
+
+    _searchVersion++;
+
     setState(() {
       _selectedPlace = place;
+
+      _results = [];
+
+      _isLoading = false;
+
+      _error = null;
 
       _searchController.text =
           place.displayName;
 
-      _results = [];
+      _searchController.selection =
+          TextSelection.collapsed(
+            offset: place.displayName.length,
+          );
     });
 
     _searchFocusNode.unfocus();
   }
 
+  // =========================================================
+  // CLEAR
+  // =========================================================
+
   void _clearSearch() {
     _debounce?.cancel();
+
+    _searchVersion++;
 
     _searchController.clear();
 
     setState(() {
       _results = [];
       _selectedPlace = null;
-      _error = null;
       _isLoading = false;
+      _error = null;
     });
 
     _searchFocusNode.requestFocus();
   }
 
-  // ─────────────────────────────────────────────
-  // Confirm
-  // ─────────────────────────────────────────────
+  // =========================================================
+  // CONFIRM
+  // =========================================================
 
   void _confirmDestination() {
-    final place = _selectedPlace;
+    if (_selectedPlace == null) {
+      return;
+    }
 
-    if (place == null) return;
+    FocusManager.instance.primaryFocus
+        ?.unfocus();
 
-    Navigator.of(context).pop({
-      'name': place.displayName,
-      'latitude': place.latitude,
-      'longitude': place.longitude,
-    });
+    context.push(
+      AppRoutes.package,
+    );
   }
 
-  // ─────────────────────────────────────────────
-  // UI
-  // ─────────────────────────────────────────────
+  // =========================================================
+  // BUILD
+  // =========================================================
 
   @override
   Widget build(BuildContext context) {
+    final hasSearchText =
+        _searchController.text
+            .trim()
+            .isNotEmpty;
+
+    final hasSelectedPlace =
+        _selectedPlace != null;
+
     return Container(
       color: AppColors.bgColor,
       child: Padding(
@@ -217,62 +281,78 @@ class _WhereDestinationBodyState
         ),
         child: Column(
           children: [
-            SizedBox(height: AppSpacing.md),
+            SizedBox(
+              height: AppSpacing.md,
+            ),
 
-            _buildHeader(context),
+            _buildHeader(),
 
-            SizedBox(height: AppSpacing.lg),
+            SizedBox(
+              height: AppSpacing.lg,
+            ),
 
             _buildSearchField(),
 
-            SizedBox(height: AppSpacing.md),
+            SizedBox(
+              height: AppSpacing.md,
+            ),
 
             _buildChooseOnMap(),
 
-            SizedBox(height: AppSpacing.ml),
+            SizedBox(
+              height: AppSpacing.ml,
+            ),
 
-            if (_searchController.text.isEmpty)
+            if (!hasSearchText)
               _buildTabs(),
 
-            if (_searchController.text.isNotEmpty)
+            if (hasSearchText &&
+                !hasSelectedPlace)
               Expanded(
-                child: _buildSearchContent(),
+                child:
+                _buildSearchContent(),
               )
             else
               const Spacer(),
 
             AppButton(
               width: double.infinity,
-              label: 'Confirm Destination',
-              onPressed: _selectedPlace == null
-                  ? null
-                  : _confirmDestination,
+              label:
+              'Confirm Destination',
+              onPressed:
+              hasSelectedPlace
+                  ? _confirmDestination
+                  : null,
             ),
 
-            SizedBox(height: AppSpacing.md),
+            SizedBox(
+              height: AppSpacing.md,
+            ),
           ],
         ),
       ),
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Header
-  // ─────────────────────────────────────────────
+  // =========================================================
+  // HEADER
+  // =========================================================
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader() {
     return SizedBox(
       height: 40.h,
       child: Stack(
         alignment: Alignment.center,
         children: [
           Align(
-            alignment: Alignment.centerLeft,
+            alignment:
+            Alignment.centerLeft,
             child: InkWell(
               onTap: () {
-                Navigator.of(context).maybePop();
+                context.pop();
               },
-              borderRadius: BorderRadius.circular(
+              borderRadius:
+              BorderRadius.circular(
                 100.r,
               ),
               child: SizedBox(
@@ -281,7 +361,8 @@ class _WhereDestinationBodyState
                 child: Icon(
                   Icons.arrow_back,
                   size: 21.r,
-                  color: AppColors.primaryColor,
+                  color: AppColors
+                      .primaryColor,
                 ),
               ),
             ),
@@ -294,8 +375,10 @@ class _WhereDestinationBodyState
                 .titleLarge
                 ?.copyWith(
               fontSize: 18.sp,
-              fontWeight: FontWeight.w500,
-              color: AppColors.primaryColor,
+              fontWeight:
+              FontWeight.w500,
+              color: AppColors
+                  .primaryColor,
             ),
           ),
         ],
@@ -303,63 +386,73 @@ class _WhereDestinationBodyState
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Search field
-  // ─────────────────────────────────────────────
+  // =========================================================
+  // SEARCH FIELD
+  // =========================================================
 
   Widget _buildSearchField() {
     return Container(
       height: 56.h,
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: AppBorders.lg,
+        borderRadius:
+        AppBorders.lg,
         border: Border.all(
-          color: AppColors.inputBorderGrey,
+          color: AppColors
+              .inputBorderGrey,
           width: 1,
         ),
       ),
       child: TextField(
-        controller: _searchController,
-        focusNode: _searchFocusNode,
+        controller:
+        _searchController,
+        focusNode:
+        _searchFocusNode,
 
-        textInputAction: TextInputAction.search,
+        textInputAction:
+        TextInputAction.search,
 
-        onChanged: (value) {
-          setState(() {});
-
-          _onSearchChanged(value);
-        },
+        onChanged:
+        _onSearchChanged,
 
         style: Theme.of(context)
             .textTheme
             .bodyMedium
             ?.copyWith(
           fontSize: 14.sp,
-          color: AppColors.secondaryColor,
+          color: AppColors
+              .secondaryColor,
         ),
 
-        decoration: InputDecoration(
-          hintText: 'Search Destination',
+        decoration:
+        InputDecoration(
+          hintText:
+          'Search Destination',
 
-          hintStyle: Theme.of(context)
+          hintStyle:
+          Theme.of(context)
               .textTheme
               .bodyMedium
               ?.copyWith(
-            fontSize: 14.sp,
-            color: const Color(
+            fontSize:
+            14.sp,
+            color:
+            const Color(
               0xFF526B86,
             ),
           ),
 
           prefixIcon: Padding(
-            padding: EdgeInsets.only(
+            padding:
+            EdgeInsets.only(
               left: AppSpacing.md,
               right: AppSpacing.sm,
             ),
             child: Icon(
               Icons.search,
               size: 23.r,
-              color: const Color(
+              color:
+              const Color(
                 0xFF365A7C,
               ),
             ),
@@ -369,22 +462,29 @@ class _WhereDestinationBodyState
           const BoxConstraints(),
 
           suffixIcon:
-          _searchController.text.isNotEmpty
+          _searchController
+              .text
+              .isNotEmpty
               ? IconButton(
-            onPressed: _clearSearch,
+            onPressed:
+            _clearSearch,
             icon: Icon(
               Icons.close,
               size: 18.r,
-              color: AppColors.grey,
+              color:
+              AppColors.grey,
             ),
           )
               : null,
 
-          border: InputBorder.none,
+          border:
+          InputBorder.none,
 
-          enabledBorder: InputBorder.none,
+          enabledBorder:
+          InputBorder.none,
 
-          focusedBorder: InputBorder.none,
+          focusedBorder:
+          InputBorder.none,
 
           contentPadding:
           EdgeInsets.symmetric(
@@ -395,47 +495,53 @@ class _WhereDestinationBodyState
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Choose on map
-  // ─────────────────────────────────────────────
+  // =========================================================
+  // CHOOSE ON MAP
+  // =========================================================
 
   Widget _buildChooseOnMap() {
     return Align(
-      alignment: Alignment.centerLeft,
+      alignment:
+      Alignment.centerLeft,
       child: InkWell(
-        onTap: () {
-          // TODO:
-          // navigate to choose location from map
-        },
-        borderRadius: AppBorders.md,
+        onTap: () {},
+        borderRadius:
+        AppBorders.md,
         child: Padding(
-          padding: EdgeInsets.symmetric(
-            vertical: AppSpacing.xs,
+          padding:
+          EdgeInsets.symmetric(
+            vertical:
+            AppSpacing.xs,
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize:
+            MainAxisSize.min,
             children: [
               Icon(
-                Icons.location_on_outlined,
+                Icons
+                    .location_on_outlined,
                 size: 23.r,
-                color: AppColors.primaryColor,
+                color: AppColors
+                    .primaryColor,
               ),
 
               SizedBox(
-                width: AppSpacing.sm,
+                width:
+                AppSpacing.sm,
               ),
 
               Text(
                 'Chose on map',
-                style: Theme.of(context)
+                style:
+                Theme.of(context)
                     .textTheme
                     .bodyMedium
                     ?.copyWith(
-                  fontSize: 14.sp,
-                  fontWeight:
-                  FontWeight.w400,
+                  fontSize:
+                  14.sp,
                   color:
-                  AppColors.primaryColor,
+                  AppColors
+                      .primaryColor,
                 ),
               ),
             ],
@@ -445,69 +551,95 @@ class _WhereDestinationBodyState
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Suggested / Saved
-  // ─────────────────────────────────────────────
+  // =========================================================
+  // TABS
+  // =========================================================
 
   Widget _buildTabs() {
     return Align(
-      alignment: Alignment.centerLeft,
+      alignment:
+      Alignment.centerLeft,
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize:
+        MainAxisSize.min,
         children: [
           Container(
             height: 48.h,
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
+            padding:
+            EdgeInsets.symmetric(
+              horizontal:
+              AppSpacing.md,
             ),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor
+            alignment:
+            Alignment.center,
+            decoration:
+            BoxDecoration(
+              color: AppColors
+                  .primaryColor
                   .withValues(
                 alpha: 0.08,
               ),
-              borderRadius: AppBorders.lg,
+              borderRadius:
+              AppBorders.lg,
             ),
             child: Text(
               'Suggested',
-              style: Theme.of(context)
+              style:
+              Theme.of(context)
                   .textTheme
                   .bodyMedium
                   ?.copyWith(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w500,
+                fontSize:
+                14.sp,
+                fontWeight:
+                FontWeight
+                    .w500,
                 color:
-                AppColors.primaryColor,
+                AppColors
+                    .primaryColor,
               ),
             ),
           ),
 
           SizedBox(
-            width: AppSpacing.md,
+            width:
+            AppSpacing.md,
           ),
 
           Container(
             height: 48.h,
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSpacing.ml,
+            padding:
+            EdgeInsets.symmetric(
+              horizontal:
+              AppSpacing.ml,
             ),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: AppBorders.lg,
+            alignment:
+            Alignment.center,
+            decoration:
+            BoxDecoration(
+              color:
+              AppColors.white,
+              borderRadius:
+              AppBorders.lg,
               border: Border.all(
-                color: AppColors.lightBorder,
+                color: AppColors
+                    .lightBorder,
               ),
             ),
             child: Text(
               'Saved',
-              style: Theme.of(context)
+              style:
+              Theme.of(context)
                   .textTheme
                   .bodyMedium
                   ?.copyWith(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w500,
-                color: AppColors
+                fontSize:
+                14.sp,
+                fontWeight:
+                FontWeight
+                    .w500,
+                color:
+                AppColors
                     .secondaryColor,
               ),
             ),
@@ -517,22 +649,17 @@ class _WhereDestinationBodyState
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Search results
-  // ─────────────────────────────────────────────
+  // =========================================================
+  // RESULTS
+  // =========================================================
 
   Widget _buildSearchContent() {
     if (_isLoading) {
-      return Center(
-        child: SizedBox(
-          width: 24.r,
-          height: 24.r,
-          child:
-          const CircularProgressIndicator(
-            strokeWidth: 2,
-            color:
-            AppColors.primaryColor,
-          ),
+      return const Center(
+        child:
+        CircularProgressIndicator(
+          color:
+          AppColors.primaryColor,
         ),
       );
     }
@@ -541,72 +668,56 @@ class _WhereDestinationBodyState
       return Center(
         child: Text(
           _error!,
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(
+          style: TextStyle(
             fontSize: 13.sp,
-            color: AppColors.textGrey,
+            color:
+            AppColors.textGrey,
           ),
         ),
       );
     }
 
     if (_results.isEmpty) {
-      return Center(
-        child: Text(
-          'No destinations found',
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(
-            fontSize: 13.sp,
-            color: AppColors.textGrey,
-          ),
-        ),
-      );
+      return const SizedBox();
     }
 
     return ListView.separated(
-      padding: EdgeInsets.only(
-        top: AppSpacing.md,
-        bottom: AppSpacing.md,
+      padding: EdgeInsets.symmetric(
+        vertical: AppSpacing.md,
       ),
 
       keyboardDismissBehavior:
       ScrollViewKeyboardDismissBehavior
           .onDrag,
 
-      itemCount: _results.length,
+      itemCount:
+      _results.length,
 
-      separatorBuilder: (
-          context,
-          index,
-          ) {
+      separatorBuilder:
+          (context, index) {
         return Divider(
           height: 1,
-          color:
-          AppColors.dividerAuthColor,
+          color: AppColors
+              .dividerAuthColor,
         );
       },
 
-      itemBuilder: (
-          context,
-          index,
-          ) {
-        final place = _results[index];
+      itemBuilder:
+          (context, index) {
+        final place =
+        _results[index];
 
         return InkWell(
           onTap: () {
             _selectPlace(place);
           },
           child: Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: AppSpacing.ms,
+            padding:
+            EdgeInsets.symmetric(
+              vertical:
+              AppSpacing.ms,
             ),
             child: Row(
-              crossAxisAlignment:
-              CrossAxisAlignment.center,
               children: [
                 Container(
                   width: 38.r,
@@ -631,7 +742,8 @@ class _WhereDestinationBodyState
                 ),
 
                 SizedBox(
-                  width: AppSpacing.ms,
+                  width:
+                  AppSpacing.ms,
                 ),
 
                 Expanded(
@@ -641,7 +753,8 @@ class _WhereDestinationBodyState
                     overflow:
                     TextOverflow
                         .ellipsis,
-                    style: Theme.of(
+                    style:
+                    Theme.of(
                       context,
                     )
                         .textTheme
@@ -649,8 +762,8 @@ class _WhereDestinationBodyState
                         ?.copyWith(
                       fontSize:
                       13.sp,
-                      height: 1.35,
-                      color: AppColors
+                      color:
+                      AppColors
                           .secondaryColor,
                     ),
                   ),
@@ -664,9 +777,9 @@ class _WhereDestinationBodyState
   }
 }
 
-// ─────────────────────────────────────────────
-// Place model
-// ─────────────────────────────────────────────
+// =========================================================
+// MODEL
+// =========================================================
 
 class _PlaceResult {
   const _PlaceResult({
@@ -678,13 +791,9 @@ class _PlaceResult {
   });
 
   final String displayName;
-
   final double latitude;
-
   final double longitude;
-
   final String type;
-
   final String addressType;
 
   factory _PlaceResult.fromJson(
@@ -713,7 +822,8 @@ class _PlaceResult {
           0,
 
       type:
-      json['type']?.toString() ??
+      json['type']
+          ?.toString() ??
           '',
 
       addressType:
