@@ -15,6 +15,7 @@ class WhentoScreen extends StatefulWidget {
     super.key,
     required this.fromTitle,
     required this.toTitle,
+    required this.rideType,
     this.fromPoint = const LatLng(
       27.18786,
       31.17020,
@@ -31,6 +32,7 @@ class WhentoScreen extends StatefulWidget {
   final LatLng fromPoint;
   final LatLng toPoint;
 
+  final RideType rideType;
   @override
   State<WhentoScreen> createState() =>
       _WhentoScreenState();
@@ -154,12 +156,17 @@ class _WhentoScreenState extends State<WhentoScreen> {
     );
 
     debugPrint(
-      'FLOW TYPE: ${RideType.normal}',
+      'FLOW TYPE: ${widget.rideType}',
     );
 
     context.push(
       AppRoutes.vehicle,
-      extra: RideType.normal,
+      extra: {
+        'rideType': widget.rideType,
+        'fromTitle': widget.fromTitle,
+        'toTitle': widget.toTitle,
+        'scheduledDateTime': _scheduledDateTime,
+      },
     );
   }
 

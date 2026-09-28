@@ -112,10 +112,12 @@ class _VehicleScreenState extends State<VehicleScreen> {
   // ===========================================================================
 
   List<_VehicleModel> get _vehicles {
-    return _currentRideType ==
-        RideType.cityToCity
-        ? _cityToCityVehicles
-        : _normalVehicles;
+    if (_currentRideType == RideType.cityToCity ||
+        _currentRideType == RideType.delivery) {
+      return _cityToCityVehicles;
+    }
+
+    return _normalVehicles;
   }
 
   // ===========================================================================
@@ -138,8 +140,8 @@ class _VehicleScreenState extends State<VehicleScreen> {
     // CITY TO CITY
     // =======================================================================
 
-    if (_currentRideType ==
-        RideType.cityToCity) {
+    if (_currentRideType == RideType.cityToCity ||
+        _currentRideType == RideType.delivery) {
       final updatedRideData =
       widget.rideData?.copyWith(
         vehicleName: selectedVehicle.title,
