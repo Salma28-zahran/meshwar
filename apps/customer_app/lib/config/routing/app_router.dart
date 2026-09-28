@@ -67,31 +67,26 @@ final GoRouter appRouter = GoRouter(
         return WhentoScreen(
           fromTitle:
           extra?['fromTitle'] as String? ?? '',
+
           toTitle:
           extra?['toTitle'] as String? ?? '',
+
+          rideType:
+          extra?['rideType'] as RideType? ??
+              RideType.normal,
         );
       },
     ),
     GoRoute(
       path: AppRoutes.vehicle,
       builder: (context, state) {
-        final extra = state.extra;
+        final extra =
+        state.extra as Map<String, dynamic>?;
 
-        if (extra is RideData) {
-          return VehicleScreen(
-            rideType: extra.rideType,
-            rideData: extra,
-          );
-        }
-
-        if (extra is RideType) {
-          return VehicleScreen(
-            rideType: extra,
-          );
-        }
-
-        return const VehicleScreen(
-          rideType: RideType.normal,
+        return VehicleScreen(
+          rideType:
+          extra?['rideType'] as RideType? ??
+              RideType.normal,
         );
       },
     ),
@@ -162,7 +157,18 @@ final GoRouter appRouter = GoRouter(
 
     GoRoute(
       path: AppRoutes.address,
-      builder: (context, state) => const AddressScreen(),
+      builder: (context, state) {
+        final extra =
+        state.extra as Map<String, dynamic>?;
+
+        return AddressScreen(
+          fromTitle:
+          extra?['fromTitle'] as String? ?? '',
+
+          toTitle:
+          extra?['toTitle'] as String? ?? '',
+        );
+      },
     ),
 
     GoRoute(

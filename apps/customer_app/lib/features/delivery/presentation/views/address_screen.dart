@@ -1,12 +1,22 @@
+import 'package:customer_app/config/routing/app_routes.dart';
 import 'package:customer_app/config/theme/app_colors.dart';
 import 'package:customer_app/config/theme/app_spacing.dart';
 import 'package:customer_app/core/widgets/app_borders.dart';
 import 'package:customer_app/core/widgets/app_button.dart';
+import 'package:customer_app/features/ride_type/ride_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 class AddressScreen extends StatelessWidget {
-  const AddressScreen({super.key});
+  const AddressScreen({
+    super.key,
+    required this.fromTitle,
+    required this.toTitle,
+  });
+
+  final String fromTitle;
+  final String toTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -17,8 +27,6 @@ class AddressScreen extends StatelessWidget {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                keyboardDismissBehavior:
-                ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: EdgeInsets.symmetric(
                   horizontal: AppSpacing.md,
                 ),
@@ -26,11 +34,15 @@ class AddressScreen extends StatelessWidget {
                   crossAxisAlignment:
                   CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: AppSpacing.md),
+                    SizedBox(
+                      height: AppSpacing.md,
+                    ),
 
                     const _AddressHeader(),
 
-                    SizedBox(height: AppSpacing.xl),
+                    SizedBox(
+                      height: AppSpacing.xl,
+                    ),
 
                     const _AddressSection(
                       title: 'Where to pick up',
@@ -40,7 +52,9 @@ class AddressScreen extends StatelessWidget {
                       'Sender phone number',
                     ),
 
-                    SizedBox(height: AppSpacing.xl),
+                    SizedBox(
+                      height: AppSpacing.xl,
+                    ),
 
                     const _AddressSection(
                       title: 'Where to deliver',
@@ -49,25 +63,27 @@ class AddressScreen extends StatelessWidget {
                       phoneLabel:
                       'Recipient phone number',
                     ),
-
-                    SizedBox(height: AppSpacing.lg),
                   ],
                 ),
               ),
             ),
 
             Padding(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.sm,
-                AppSpacing.md,
+              padding: EdgeInsets.all(
                 AppSpacing.md,
               ),
               child: AppButton(
                 width: double.infinity,
                 label: 'Continue',
                 onPressed: () {
-
+                  context.push(
+                    AppRoutes.whento,
+                    extra: {
+                      'fromTitle': fromTitle,
+                      'toTitle': toTitle,
+                      'rideType': RideType.delivery,
+                    },
+                  );
                 },
               ),
             ),
@@ -77,6 +93,7 @@ class AddressScreen extends StatelessWidget {
     );
   }
 }
+
 
 class _AddressHeader extends StatelessWidget {
   const _AddressHeader();
@@ -92,17 +109,13 @@ class _AddressHeader extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: InkWell(
               onTap: () {
-                Navigator.of(context).maybePop();
+                context.pop();
               },
               borderRadius: AppBorders.full,
-              child: SizedBox(
-                width: 40.r,
-                height: 40.r,
-                child: Icon(
-                  Icons.arrow_back,
-                  size: 21.r,
-                  color: AppColors.primaryColor,
-                ),
+              child: Icon(
+                Icons.arrow_back,
+                size: 22.r,
+                color: AppColors.primaryColor,
               ),
             ),
           ),
@@ -123,6 +136,7 @@ class _AddressHeader extends StatelessWidget {
     );
   }
 }
+
 
 class _AddressSection extends StatelessWidget {
   const _AddressSection({
@@ -157,42 +171,43 @@ class _AddressSection extends StatelessWidget {
 
         SizedBox(height: AppSpacing.lg),
 
-        _AddressField(
+        _Field(
           label: 'street building',
           hint: streetHint,
-          keyboardType: TextInputType.streetAddress,
+          type: TextInputType.streetAddress,
         ),
 
         SizedBox(height: AppSpacing.ml),
 
-        _AddressField(
+        _Field(
           label: 'Address details',
           hint: detailsHint,
-          keyboardType: TextInputType.streetAddress,
+          type: TextInputType.streetAddress,
         ),
 
         SizedBox(height: AppSpacing.ml),
 
-        _AddressField(
+        _Field(
           label: phoneLabel,
           hint: '+20 | 10XXXXXXXX',
-          keyboardType: TextInputType.phone,
+          type: TextInputType.phone,
         ),
       ],
     );
   }
 }
 
-class _AddressField extends StatelessWidget {
-  const _AddressField({
+
+class _Field extends StatelessWidget {
+  const _Field({
     required this.label,
     required this.hint,
-    required this.keyboardType,
+    required this.type,
   });
 
   final String label;
   final String hint;
-  final TextInputType keyboardType;
+  final TextInputType type;
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +222,6 @@ class _AddressField extends StatelessWidget {
               .bodyMedium
               ?.copyWith(
             fontSize: 12.5.sp,
-            fontWeight: FontWeight.w400,
             color: AppColors.secondaryColor,
           ),
         ),
@@ -221,32 +235,13 @@ class _AddressField extends StatelessWidget {
             borderRadius: AppBorders.lg,
             border: Border.all(
               color: AppColors.inputBorderGrey,
-              width: 1,
             ),
           ),
           child: TextField(
-            keyboardType: keyboardType,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(
-              fontSize: 13.sp,
-              color: AppColors.secondaryColor,
-            ),
+            keyboardType: type,
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(
-                fontSize: 12.sp,
-                color: const Color(
-                  0xFF8295A9,
-                ),
-              ),
               border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
               contentPadding:
               EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,
